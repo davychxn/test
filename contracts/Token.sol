@@ -89,6 +89,7 @@ contract Token is IERC20, IMintableToken, IDividends {
     return _holders[index - 1];
   }
 
+  // Lazy Calculation Of Dividend To Save Gas
   function recordDividend() external payable override {
     require(msg.value > 0, "Zero Amount Assigned.");
     require(totalSupply > 0, "Zero TotalSupply To Pay.");
@@ -96,6 +97,7 @@ contract Token is IERC20, IMintableToken, IDividends {
     _dividendPerToken = _dividendPerToken.add(msg.value.mul(_DIVIDEND_PRECISION).div(totalSupply));
   }
 
+  // Here To Calculate Withdrawable Dividend
   function calculateWithdrawableDividend(address payee) public view returns (uint256) {
     uint256 unpaidDividendPerToken = _dividendPerToken.sub(_dividendPerTokenPaid[payee]);
     uint256 newDividend = balanceOf[payee].mul(unpaidDividendPerToken).div(_DIVIDEND_PRECISION);
@@ -107,6 +109,7 @@ contract Token is IERC20, IMintableToken, IDividends {
     return calculateWithdrawableDividend(payee);
   }
 
+  // Only Calculate Withdrawable Dividend When User Withdraw
   function withdrawDividend(address payable dest) external override {
     uint256 value = calculateWithdrawableDividend(msg.sender);
     require(value > 0, "No Dividend To Withdraw.");
